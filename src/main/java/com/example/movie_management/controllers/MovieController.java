@@ -55,6 +55,7 @@ public class MovieController {
             If you don't know this movie, get creative and make one up. 
             Keep the description under 30 words, and don't give me multiple choices. 
             Just one description, under 30 words.
+            
             """, title);
 
         GenerateContentResponse response = client.models.generateContent("gemini-2.0-flash-001", query, null);
@@ -62,6 +63,9 @@ public class MovieController {
 
         Movie newMovie = new Movie(title, rating, description);
         moviesList.append("<li>").append(newMovie).append("</li>");
+        String newQuery = "Give me the names of 3 movies similar to "+title+", don't add any descriptions and print them in list form";
+        GenerateContentResponse newResponse = client.models.generateContent("gemini-2.0-flash-001", newQuery, null);
+        String moviesuggestions = newResponse.text();
 
         return """
                 <html>
@@ -70,10 +74,14 @@ public class MovieController {
                 """ +
                 "<p>You have successfully added " + title + " (Rating: " + rating + ")" + " to the collection.</p>" +
                 """
-                <p><a href='/add'>Add</a> another movie or view the <a href='/'>updated list</a> of movies.</p>
+                <p><a href='/add'>Add</a> another movie or view the <a href='/'>updated list</a> of movies.</p>"""+
+                "You might also like these movies..."+
+                "<p>"+moviesuggestions+"</p>"+
+                """    
                 </body>
                 </html>
-                """;
+                """
+                ;
     }
 
 }
