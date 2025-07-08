@@ -5,6 +5,8 @@ import org.springframework.web.bind.annotation.*;
 import com.google.genai.Client;
 import com.google.genai.types.GenerateContentResponse;
 
+import java.util.ArrayList;
+
 
 @RestController
 @RequestMapping("/")
@@ -63,10 +65,24 @@ public class MovieController {
 
         Movie newMovie = new Movie(title, rating, description);
         moviesList.append("<li>").append(newMovie).append("</li>");
-        String newQuery = "Give me the names of 3 movies similar to "+title+", don't add any descriptions and print them in list form";
+//        String newQuery = String.format("""
+//                Give me the names of 3 movies similar to %s, add a short description under 30 words for each, and print them as bullet points each in a new line""",title);
+        String newQuery = "Give me a list of 3 movies similar to"+title+" with name and a short description separated by hyphen. Don't add a response.";
+
         GenerateContentResponse newResponse = client.models.generateContent("gemini-2.0-flash-001", newQuery, null);
         String moviesuggestions = newResponse.text();
+        String[] movieList = new String[0];
+        StringBuilder suggestedMovielist = new StringBuilder();
 
+        if(moviesuggestions!=null){
+            movieList = moviesuggestions.trim().split("\\.");
+        }
+
+        System.out.println(moviesuggestions);
+        for (String detail : movieList) {
+
+            suggestedMovielist.append("<li>").append(detail).append("</li>");
+        }
         return """
                 <html>
                 <body>
@@ -76,8 +92,14 @@ public class MovieController {
                 """
                 <p><a href='/add'>Add</a> another movie or view the <a href='/'>updated list</a> of movies.</p>"""+
                 "You might also like these movies..."+
-                "<p>"+moviesuggestions+"</p>"+
-                """    
+                """
+                <ul>
+                
+                """+
+                suggestedMovielist
+                +
+                """
+                </ul>
                 </body>
                 </html>
                 """
